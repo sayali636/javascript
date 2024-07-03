@@ -1,0 +1,804 @@
+1.........
+create table cnt(
+cno int primary key,
+cname varchar2(20),
+address varchar(20),
+bdate date);
+create table policy(pno number primary key,
+ pdesc varchar(20), 
+m_amt number, 
+p_amt number, 
+pdate date);
+
+insert into cnt values(1,'om','shrirampur','12-jan-2000');
+insert into cnt values(2,'sai','pune','12-feb-1990');
+insert into cnt values(3,'ram','nashik','22-april-2001');
+insert into cnt values(4,'sham','shrirampur','1-dec-2002');
+
+insert into policy values(101,'jivan vima',80000,8000,'12-jan-2020');
+insert into policy values(102,'jivan aarogya',70000,1700,'4-june-2003');
+insert into policy values(103,'bal vima',50000,15000,'10-dec-2019');
+insert into policy values(104,'agnivima',180000,25000,'1-aug-2016');
+
+insert into cp values(1,101);
+insert into cp values(1,102);
+insert into cp values(1,103);
+insert into cp values(2,102);
+insert into cp values(3,103);
+insert into cp values(4,104);
+insert into cp values(3,104);
+
+
+create or replace function dispmamt(name cnt.cname%type) return int
+is
+s int;
+begin
+select sum(m_amt) into s from cnt,policy,cp
+where cnt.cno=cp.cno AND policy.pno=cp.pno AND
+cname=name;
+return s;
+end;
+/
+
+
+select dispmamt('om') from dual;
+
+
+declare
+cursor c1 is select * from policy,cnt,cp order by pdate asc;
+r1 c1%type;
+open c1;
+loop
+FETCH c1 into r1;
+exit when c1%NOTFOUND;
+dbms_output_line('cno='||r1.cno);
+end loop;
+close c1;
+end;
+/
+------------------------------------------------------------------------------------------------
+2.....
+create or replace function dispsum return int
+is
+cnt int; 
+begin
+     select count(*) into cnt from item,supplier,i_s
+      where item.ino=i_s.ino 
+       AND supplier.sno=i_s.sno
+        AND iname='book';
+return cnt;
+end;
+/
+ select dispsum() from dual;
+
+create or replace trigger t7
+before insert or update on i_s
+for each row
+declare
+ INVALID_RATE_QUANTITY exception;
+begin
+    if(:new.rate<0) AND(:new.quantity<0) then
+           raise  INVALID_RATE_QUANTITY;
+  exception
+     when INVALID_RATE_QUANTITY then
+   raise_application_error(-20003,'rate and quantity must be greter than 0');
+end;
+/
+insert into i_s values(1,101,-1,-6);
+select * from item;
+---------------------------------------------------------------------------------------------------
+3............
+create table cities(pincode int primary key, city varchar(20),state varchar(20));
+
+create or replace trigger t16
+before insert or update on cities
+for each row
+declare
+ INVALID_PINECODE exception;
+begin 
+  if(:new.pincode<=6) OR (:new.pincode>=6) then 
+   raise INVALID_PINECODE;
+   end if;
+  exception
+   when INVALID_PINECODE then
+ raise_application_error(-20099,'pincode must be greter than 6');
+end;
+/
+---------------------------------------------------------------------------------
+28...
+select * from emp;
+select * from investment;
+
+create or replace function dtotal(name IN emp.ename%type) return int 
+is
+t int;
+begin
+  select sum(amt) into t from emp,investment
+  where emp.eno=investment.eno AND ename=name;
+  return t;
+end;
+/
+
+
+select dtotal('ram') from dual;
+
+create or replace trigger t14
+before insert or update on investment
+for each row
+declare
+ INVALIED_AMT exception;
+begin 
+  if(:new.amt<=50000) then 
+  raise INVALIED_AMT;
+  exseption 
+          when INVALIED_AMT then
+  raise_application_error(-20001,'amt greter than 50000');
+end if;
+end;
+/
+----------------------------------------------------------------------------
+29.....
+select * from emp;
+select * from investment;
+
+
+create or replace function dtotal(name IN emp.ename%type) return int 
+is
+t int;
+begin
+  select sum(amt) into t from emp,investment
+  where emp.eno=investment.eno AND ename=name;
+  return t;
+end;
+/
+
+
+select dtotal('ram') from dual;
+
+
+create or replace trigger t14
+before insert or update on investment
+for each row
+declare
+ INVALIED_AMT exception;
+begin 
+  if(:new.amt<=50000) then 
+  raise INVALIED_AMT;
+  exseption 
+          when INVALIED_AMT then
+  raise_application_error(-20001,'amt greter than 50000');
+end if;
+end;
+/
+----------------------------------------------------------------
+30.......................
+select * from library
+select * from book
+
+create or replace procedure disp_w(name OUT book.bname%type)
+IS
+begin
+  select bname into name from book,library
+   where library.lno=book.lno AND author_name='balguru' AND lname='cdj';
+ dbms_output.put_line('book name='||name);  
+end;
+/
+
+declare
+name book.bname%type;
+begin
+  disp_w(name);
+end;
+/
+create or replace trigger t88
+before insert or update on book
+for each row
+declare
+  INVALIED_PRICE exception;
+ begin
+if(:new.price<0)then
+ raise INVALIED_PRICE;
+end if;
+exception
+  when INVALIED_PRICE then
+  raise_appliction_error(20003,'invalid price');
+end;
+/ 
+----------------------------------------------------------------------------------------
+5........................
+select * from library;
+select * from book;
+
+create or replace function dispp(pub book.publication%type) return int
+is
+p int;
+begin
+  select price into p from book where publication=pub;
+  return p;
+end;
+/
+select dispp('nirali') from dual;
+declare 
+  pub book.publication%type;
+ p int;
+begin
+  pub:=:pub;
+   p:=dispp(pub);
+   dbms_output.put_line('price='||p);
+end;
+/
+
+
+declare 
+ cursor c1 is select * from book
+  order by lno asc; 
+    r1 c1%rowtype;
+begin
+    open c1;
+     loop
+      fetch c1 into r1;
+       exit when c1%NOTFOUND;
+        dbms_output.put_line('book no='||r1.bid);
+        dbms_output.put_line('book name='||r1.bname);
+        dbms_output.put_line('book author_name='||r1.author_name);
+        dbms_output.put_line('book price='||r1.price);
+        dbms_output.put_line('book publication='||r1.publication);
+        dbms_output.put_line('');
+     end loop;
+  close c1;
+end;
+/
+---------------------------------------------------------------------------------------
+7..........................
+select * from bill;
+select * from menu;
+
+select * from bm;
+create table bm(bno int references bill,dno int references menu,quantity int);
+insert into bm values(401,301,50);
+insert into bm values(401,302,70);
+insert into bm values(402,301,65);
+insert into bm values(404,303,74);
+insert into bm values(402,302,84);
+
+create or replace procedure dispmenu(no OUT menu.dno%type,name OUT menu.dname%type,p OUT menu.price%type)
+IS
+begin
+   select dno,dname,price into no,name,p from menu,bill,bm
+    where bill.bno=bm.bno AND menu.dno=bm.dno AND
+    day='sunday' AND price<=200 ;
+end;
+/
+
+
+
+
+
+create or replace trigger t8
+before insert or update on menu
+for each row
+declare
+  INVALID_PRICE exception;
+begin
+   if(:new.price<=0) then
+   raise  INVALID_PRICE;
+exception
+   when  INVALID_PRICE then
+    raise_application_error(-20038,'price must be greter than 0');
+end if;
+end;
+/
+
+insert into menu values(304,'panir',0);
+------------------------------------------------------------------------------------------------------
+8.......................
+create table plan(pno int primary key,
+pname varchar2(20),
+fcalltime varchar2(20),
+famt int);
+
+insert into plan values(1,'jio','unlimited',239);
+insert into plan values(2,'vi','limited',250);
+insert into plan values(3,'bsnl','unlimited',200);
+insert into plan values(4,'artel','unlimited',239);
+create table customer1(cno int primary key,
+cname varchar2(20),
+mno int,
+pno int references plan);
+
+insert into customer1 values(101,'om',1234567890,1);
+insert into customer1 values(102,'sai',7584937890,2);
+insert into customer1 values(103,'ram',6478367890,3);
+insert into customer1 values(104,'sham',7845678902,4);
+select * from plan;
+create or replace function dplan(no plan.pno%type) return varchar
+is
+p plan.pname%type;
+f plan.fcalltime%type;
+fa plan.famt%type;
+begin
+  select pname,fcalltime,famt into p,f,fa from plan where pno=no;
+  return dbms_output.put_line(p||'  '||f||'  '||fa||'  ');
+ end;
+/
+
+---------------------------------------------------------------------------------------------
+6.................................
+select * from investment;
+select * from EMP;
+select * from tab;
+
+
+declare
+cursor c1 is select * from investment
+order by idate asc;
+ r1 c1%rowtype;
+begin
+ open c1;
+loop
+fetch c1 into r1;
+exit when c1%NOTFOUND;
+dbms_output.put_line('in no='||r1.ino);
+dbms_output.put_line('in name='||r1.iname);
+dbms_output.put_line('in date='||r1.idate);
+dbms_output.put_line('in amt='||r1.amt);
+end loop;
+close c1;
+end;
+/
+---------------------------------------------------------------------------------
+9.............................
+select * from project;
+select * from department;
+insert into project values(107,'administrition','15-jan-20',500000,'p',1);
+
+create or replace function dispp(name in department.dname%type,ss in project.status%type)
+return int
+is
+s int;
+begin
+    select sum(status) into s from project,department
+     where department.dno=project.dno
+     AND status='p' AND  dname=name;
+return s;
+end;
+/
+
+
+declare
+   cursor c1 is select * from project 
+    order by status asc;
+    r1 c1%rowtype;
+begin
+   open c1; 
+   loop
+   fetch c1 into r1;
+   exit when c1%NOTFOUND;
+    dbms_output.put_line('pno='||r1.pno); 
+    dbms_output.put_line('pname='||r1.pname);
+    dbms_output.put_line('sdate='||r1.sdate);
+    dbms_output.put_line('budget='||r1.budget);
+    dbms_output.put_line('status='||r1.status);
+   end loop;
+close c1;
+end;
+---------------------------------------------------------------------------------------
+10.............
+select * from gym;
+select * from member;
+create or replace function dispch(no IN member.id%type,sch IN gym.scheme%type)
+return int
+is
+ch int;
+begin
+ select charges into ch from gym,member
+ where gym.gname=member.gname
+ AND id=no AND scheme=sch;
+return ch;
+end;
+/
+
+select dispch(1,'yoga') from dual;
+
+
+
+create or replace trigger t6
+before insert or update on gym
+for each row
+declare
+ INVALID_CHARGES exception;
+begin
+if(:new.charges<1000) then
+raise  INVALID_CHARGES;
+end if;
+exception
+  when  INVALID_CHARGES  then
+raise_application_error(-20003,'charges must be greter than 1000');
+end;
+/ 
+
+insert into gym values('sd','mumbai',500,'free-food');
+---------------------------------------------------------------------------------------------------------------
+11.............
+select * from lab;
+select * from stude;
+
+create or replace function displab(no lab.lno%type) return int 
+is
+cnt int;
+begin
+   select lcapacity into cnt  from lab
+   where   lno=no;
+return cnt;
+end;
+/
+
+select displab(3) from dual;
+
+
+
+declare 
+  cursor c1 is select * from stude 
+    order by lno;
+   r1 c1%rowtype;
+begin
+  open c1;
+   loop
+  fetch c1 into r1;
+  exit when c1%NOTFOUND;
+  dbms_output.put_line('roll no='||r1.rno);
+  dbms_output.put_line('name='||r1.sname);
+  dbms_output.put_line('class='||r1.class);
+  dbms_output.put_line('time='||r1.ttable);
+  dbms_output.put_line('mobail no='||r1.mno);
+  end loop;
+close c1;
+end;
+/ 
+---------------------------------------------------------------------
+12...........
+select * from wholesaler;
+select * from product;
+select * from wp;
+
+create or replace function tolitem(name wholesaler.w_name%type) return int
+is
+cnt int;
+begin
+  select count(*) into cnt from wholesaler,product,wp
+  where wholesaler.w_no=wp.w_no AND product.p_no=wp.p_no
+  AND w_name=name;
+return cnt;
+end;
+/  
+
+select tolitem('om') from dual;
+
+create or replace trigger t11
+before insert or update on product
+for each row
+declare
+ INVALID_RATE exception;
+begin
+  if(:new.rate<=0) then 
+  raise  INVALID_RATE;
+end if;
+exception
+   when  INVALID_RATE then
+  raise_application_error(-20008,'rate must be greter than 0');
+end;
+/
+--------------------------------------------------------------------
+14..................
+create table college1(cno int primary key,
+cname varchar(20),
+address varchar(20));
+insert into college1 values(1,'cdj','shirampur');
+
+insert into teacher values(101,'om','mca','dbms',80000,1);
+create table teacher (tid int primary key , tname varchar2(20), Quali varchar2(20), specialization varchar2(20), salary int , cno int references college1);
+drop table teacher;
+select * from tab; desc college;
+select * from desc teachaer;
+
+create or replace procedure col1(name IN teacher.tname%type,
+no OUT college1.cno%type,
+c_name OUT college1.cname%type,
+addr OUT college1.address%type) 
+is
+begin
+ select cno,cname,address into no,c_name,addr from college1
+   where college1.cno=teacher.cno AND tname=name;
+               dbms_output.put_line('cno='||no);
+               dbms_output.put_line('cname='||c_name);
+               dbms_output.put_line('address='||addr);
+ end;
+/
+
+
+create or replace trigger t10
+before insert or update on teacher
+for each row
+declare
+   INVALID_SALARY exception;
+begin
+  if(:new.salary<=0) then
+   raise  INVALID_SALARY;
+end if;
+exception
+ when  INVALID_SALARY then
+   raise_application_error(-20006,'salary must be declare greter than 0');
+end;
+/
+----------------------------------------------------------------------------------------------------------
+15...............
+select * from car;
+select * from driver;
+create table cd(l_no int references car,licence_no int references driver, cdate date,time varchar2(20));
+insert into cd values(205,120,'1-jan-2003','9 to 4');
+insert into cd values(205,121,'2-feb-2012','8 to 5');
+insert into cd values(205,123,'18-june-2013','11 to 3');
+insert into cd values(203,124,'14-jan-2006','4 to 12');
+insert into cd values(202,125,'21-dec-2008','4 to 11');
+create or replace function totalp 
+return int
+is
+cnt int;
+begin
+  select count(*) into cnt from car,driver,cd
+  where car.l_no=cd.l_no AND driver.licence_no=cd.licence_no AND model='swift';
+return cnt;
+end;
+/
+
+select totalp() from dual;
+
+Q.2
+create or replace trigger t9
+before insert or update on car
+for each row
+declare
+  INVALID_YEAR exception;
+begin
+  if(:new.year>2024) then
+   raise INVALID_YEAR;
+  end if;
+ exception
+    when INVALID_YEAR then
+   raise_application_error(-20003,'year must be greter than 2024');
+end;
+/
+
+
+------------------------------------------------------------------------------------------------------------------------
+16....................
+create table game(name varchar(20) primary key,
+noplayers int,
+cname varchar(20));
+drop table game;
+select * from game;
+
+insert into game values('kho_kho',6,'sayali');
+insert into game values('foolbol',8,'tanuja');
+insert into game values('criket',7,'om');
+insert into game values('kabbadi',10,'sai');
+create table player(
+pid int primary key,
+name varchar2(20),
+address varchar2(10),
+cname varchar2(10));
+
+insert into player values(1,'sachin','belapur','r9');
+insert into player values(2,'rohit','pune','j7');
+insert into player values(3,'virat','mahur','gg');
+insert into player values(4,'dhoni','shrirampur','sai');
+
+select*from game;
+select*from player;
+select*from desc gp;
+create table gp( name varchar2(20) references game,pid int references player);
+
+insert into gp values('kho_kho',1);
+insert into gp values('foolbol',2);
+insert into gp values('criket',3);
+insert into gp values('kabbadi',4);
+drop table player;
+
+create or replace procedure dispgame(n OUT game.name%type,np OUT game.noplayers%type,cn OUT game.cname%type)
+is
+begin
+  select name,noplayers,cname into n,np,cn  from game where noplayers>8;
+  dbms_output.put_line('name='||n);
+  dbms_output.put_line('no player='||np);
+  dbms_output.put_line('cname='||cn);
+end;
+/
+declare
+n game.name%type;
+np game.noplayers%type;
+cn game.cname%type;
+begin 
+ dispgame(n,np,cn);
+end;
+/
+
+create or replace trigger t12
+before insert or update on game
+for each row
+declare
+  INVALID_PLAYERS exception;
+begin
+ if(:new.noplayers<=0) then
+      raise INVALID_PLAYERS;
+end if;
+ exception
+   when INVALID_PLAYERS then
+  raise_application_error(-20035,'player must be greter than 0');
+end;
+/
+------------------------------------------------------------------------------------------
+19............
+create or replace function ftotal() return int 
+is
+cnt int;
+begin 
+  select count(*) into cnt  from game,pleyer,gp where game.name=gp.name AND player.pid=gp.pid
+   AND cname='r9';  
+  return cnt;
+end;
+/
+
+
+declare
+ cursor c1 is select * from player
+  order by cname;
+r1 c1%rowtype;
+begin
+    open c1;
+    loop
+    fetch c1 into r1;
+     exit when c1%NOTFOUND;
+      dbms_output.put_line('pid='||r1.pid);
+      dbms_output.put_line('name='||r1.name);
+      dbms_output.put_line('address='||r1.address);
+      dbms_output.put_line('cname='||r1.cname);
+    end loop;
+  close c1;
+end;
+/
+
+
+
+
+
+
+select * from game;
+select * from player;
+----------------------------------------------------------------------------------------------------------
+21.......
+select * from college1;
+select * from teacher;
+
+create or replace function dispt(name college1.cname%type) return int
+is 
+cnt int;
+begin 
+ select count(*) into cnt from teacher where college1.cno=teacher.cno AND quali='mca' AND cname='name';
+return cnt;
+end;
+/
+declare 
+  cursor c1 is select * from teacher 
+    order by cno; 
+r1 c1%rowtype;
+begin 
+ open c1;
+ loop
+ fetch c1 into r1;
+ exit when c1%NOTFOUND;
+ dbms_output.put_line('tid='||r1.tid);
+ dbms_output.put_line('tname='||r1.tname);
+ dbms_output.put_line('qualification='||r1.quali);
+ dbms_output.put_line('specialization='||r1.specialization);
+ dbms_output.put_line('salary='||r1.salary);
+end loop;
+close c1;
+end;
+/
+----------------------------------------------------------------------------------------------------------------------------
+23..................
+select * from wholesaler;
+select * from product;
+select * from wp;
+
+create or replace procedure disps(no OUT product.p_no%type,name OUT product.product_name%type,r OUT product.rate%type)
+is
+begin 
+  select p_no,product_name,rate into no,name,r from product,wholesaler,wp 
+  where wholesaler.w_no=wp.w_no AND product.p_no=wp.p_no
+  AND w_name='om';
+ dbms_output.put_line('pno='||no);
+ dbms_output.put_line('pname='||name);
+ dbms_output.put_line('rate='||r);
+end;
+/
+------------------------------------------------------------------------------------------------------------
+25..........
+select * from gym;
+select * from member;
+
+create or replace procedure disp(mid OUT member.id%type,name OUT member.mname%type,pno OUT member.phoneno%type,addr OUT member.address%type)
+is
+begin
+  select id,mname,phoneno,address into mid,name,pno,addr from member where  address='belapur';
+  dbms_output.put_line('id='||mid);
+  dbms_output.put_line('name='||name);
+  dbms_output.put_line('phoneno='||pno);
+  dbms_output.put_line('address='||addr);
+end;
+/
+declare
+mid member.id%type;
+name member.mname%type;
+pno member.phoneno%type;
+addr member.address%type;
+begin
+ disp(mid,name,pno,addr);
+end;
+/
+-------------------------------------------------------------------------------------------------------------------
+26.............
+select * from project;
+select * from department;
+
+create or replace procedure dispmax(name OUT department.HOD%type)
+AS
+begin
+  select HOD into name from department
+  where department.dno=project.dno 
+  AND pname='admission'; 
+     dbms_output.put_line('hod='||name);
+end;
+/
+
+create or replace trigger t13
+before insert or update on project
+for each row
+declare
+ INVALID_BUDGET exception;
+begin
+ if(:new.budget<=0) then 
+   raise  INVALID_BUDGET;
+  end if;
+ exception
+   when INVALID_BUDGET then 
+  raise_application_error(-20009,'budget must be gerter than 0');
+end;
+/
+---------------------------------------------------------------------------------------------------------------
+27.........
+select * from customer1;
+create or replace trigger t17
+before insert or update on customer1
+for each row
+declare
+ INVALID_MNO exception;
+begin
+if(:new.mno>=10)AND(:new.mno<=10) then
+   raise  INVALID_MNO;
+   end if;
+  exception
+   when  INVALID_MNO then
+raise_application_error(-20005,'mno lenth must be 10 digit');
+end;
+/
+
+insert into customer1 values(10,'aman',12324,1);
+-------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+

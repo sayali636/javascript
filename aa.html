@@ -1,0 +1,27 @@
+<html>
+    <body>
+           <form>
+                  enter name:
+                    <input type="text" id="s1"><br>
+                      enter age:
+                    <input type="number" id="s2"><br> 
+                  enter mobai no:
+                    <input type="number" id="s3"><br> 
+                      <input type="button" value="enter " onclick="check()" 
+            </form>
+     </body> 
+</html>
+  <script>
+          function check()
+        {
+         var n=document.getElementById("s1").value;
+         var a=document.getElementById("s2").value;
+         var m=document.getElementById("s3").value;
+             if(n=="")
+            alert("plz enter name");
+      else if(m!="10")
+              alert("mobail no  must be 10 digit only");
+    else
+           alert("login succssful");
+        }     
+    </script>

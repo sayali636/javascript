@@ -1,0 +1,15 @@
+profit=sp-cp
+loss=cp-sp
+cp=sp-profit
+cp=sp+loss
+sp=cp+profit
+sp=cp-loss
+%profit=profit/cp*100
+%loss=loss/cp*100
+sp=100+%profit/100*cp
+sp=100-%loss/100*cp
+cp=100/100+%profit*sp
+cp=100/100-%loss*sp
+sp=mp-trade dis
+cp=sp-cash dis
+mp=100+profit/100-trade dis*cp                   
